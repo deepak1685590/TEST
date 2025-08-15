@@ -1,13 +1,15 @@
-// admin.js - Reverted to localStorage version
+// admin.js - Refactored to use the backend API
 
 // --- 1. Initialization & Auth Guard ---
 document.addEventListener('DOMContentLoaded', () => {
     const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
 
+    // Auth guard: Ensure user is logged in and is an admin
     if (!loggedInUser || !loggedInUser.isAdmin) {
         window.location.href = 'login.html';
         return;
     }
+
     initAdminDashboard(loggedInUser);
 });
 
@@ -15,44 +17,65 @@ function initAdminDashboard(admin) {
     document.getElementById('admin-username').textContent = `User: ${admin.username}`;
     document.getElementById('logout-btn').addEventListener('click', logout);
     document.querySelector('.user-management').addEventListener('click', handleUserAction);
-    renderAllUsers();
+
+    // Initial fetch and render of users
+    fetchAndRenderUsers();
 }
 
-// --- 2. Data Management (localStorage) ---
-function getAllUsers() {
-    return JSON.parse(localStorage.getItem('users')) || [];
+// --- 2. API Data Management ---
+async function fetchAndRenderUsers() {
+    try {
+        const response = await fetch('/api/users');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const users = await response.json();
+        renderAllUsers(users);
+    } catch (error) {
+        console.error("Failed to fetch users:", error);
+        // Display an error message in the UI
+        const pendingContainer = document.getElementById('pending-users');
+        pendingContainer.innerHTML = '<p class="error">Failed to load user data. Please try again later.</p>';
+    }
 }
 
-function saveUsers(users) {
-    localStorage.setItem('users', JSON.stringify(users));
-}
+async function updateUserStatus(username, newStatus, reason = '') {
+    try {
+        const response = await fetch(`/api/users/${username}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus, reason: reason }),
+        });
 
-function updateUserStatus(username, newStatus, reason = '') {
-    let users = getAllUsers();
-    const userIndex = users.findIndex(u => u.username === username);
+        const result = await response.json();
 
-    if (userIndex !== -1) {
-        users[userIndex].status = newStatus;
-        users[userIndex].reason = reason;
-        saveUsers(users);
-        renderAllUsers();
+        if (response.ok && result.success) {
+            // Refresh the user list to show the change
+            fetchAndRenderUsers();
+        } else {
+            alert(`Failed to update user: ${result.message || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error("Failed to update user status:", error);
+        alert('An error occurred while communicating with the server.');
     }
 }
 
 // --- 3. UI Rendering ---
-function renderAllUsers() {
-    const users = getAllUsers();
-
+function renderAllUsers(users) {
     const pendingContainer = document.getElementById('pending-users');
     const activeContainer = document.getElementById('active-users');
     const revokedContainer = document.getElementById('revoked-users');
 
+    // Clear existing content
     pendingContainer.innerHTML = '';
     activeContainer.innerHTML = '';
     revokedContainer.innerHTML = '';
 
     users.forEach(user => {
-        if (user.isAdmin) return;
+        if (user.isAdmin) return; // Don't display the admin account in the lists
 
         const userCard = document.createElement('div');
         userCard.className = `user-card status-${user.status}`;
@@ -87,6 +110,7 @@ function renderAllUsers() {
         else revokedContainer.appendChild(userCard);
     });
 
+    // Add placeholder messages if lists are empty
     if (pendingContainer.children.length === 0) pendingContainer.innerHTML = '<p>No pending users.</p>';
     if (activeContainer.children.length === 0) activeContainer.innerHTML = '<p>No active users.</p>';
     if (revokedContainer.children.length === 0) revokedContainer.innerHTML = '<p>No revoked users.</p>';
@@ -112,6 +136,7 @@ function handleUserAction(event) {
             break;
         case 'revoke':
             const revokeReason = prompt(`Provide a reason for revoking access for "${username}":`);
+            if (revokeReason === null) return; // User cancelled the prompt
             if (!revokeReason) {
                 alert('A reason is required to revoke user access.');
                 return;
