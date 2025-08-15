@@ -12,7 +12,11 @@ function init() {
     document.getElementById('user-tab').addEventListener('click', () => switchTab('user'));
     document.getElementById('admin-tab').addEventListener('click', () => switchTab('admin'));
 
-    // No longer initializing users from localStorage
+    // Check for redirect message
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('return') === 'unauthorized') {
+        displayStatus('revoked', 'Please log in to access the application.');
+    }
 }
 
 function switchTab(mode) {
