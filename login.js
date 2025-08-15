@@ -14,6 +14,28 @@ function init() {
 
     startMatrixAnimation();
 
+    // --- Audio Controls ---
+    const audio = document.getElementById('matrix-audio');
+    const muteBtn = document.getElementById('mute-btn');
+
+    if (audio && muteBtn) {
+        // Mute by default for browser autoplay policies
+        audio.muted = true;
+        muteBtn.textContent = '🔇'; // Show muted icon initially
+
+        // We need a user interaction to start audio with sound.
+        // A simple way is to start it on the first click anywhere.
+        document.body.addEventListener('click', () => {
+            audio.play().catch(error => console.log("Audio play failed:", error));
+        }, { once: true }); // This listener will only fire once.
+
+        muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent the body click listener from firing again
+            audio.muted = !audio.muted;
+            muteBtn.textContent = audio.muted ? '🔇' : '🔊';
+        });
+    }
+
     // Initialize users in localStorage if not present
     if (!localStorage.getItem('users')) {
         const adminUser = [{
