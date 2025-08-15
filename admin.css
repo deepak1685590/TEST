@@ -1,0 +1,200 @@
+/* admin.css */
+
+/* 1. Root Variables and Body (Consistent with login.css) */
+:root {
+    --primary-green: #00FF41;
+    --dark-green: #003300;
+    --black: #000000;
+    --error-red: #FF0000;
+    --pending-amber: #FFCC00;
+    --info-blue: #00BFFF;
+    --font-orbitron: 'Orbitron', sans-serif;
+    --font-rajdhani: 'Rajdhani', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-rajdhani);
+    background-color: var(--black);
+    color: var(--primary-green);
+    min-height: 100vh;
+}
+
+/* 2. Background Effects (Consistent with login.css) */
+.background-effects {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.scanner-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-green);
+    box-shadow: 0 0 10px var(--primary-green);
+    animation: scan 8s linear infinite;
+}
+
+@keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+/* 3. Dashboard Layout */
+.admin-container {
+    width: 95%;
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid var(--dark-green);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--dark-green);
+    margin-bottom: 20px;
+}
+
+.admin-header h1 {
+    font-family: var(--font-orbitron);
+    font-size: 2.5em;
+}
+
+#logout-btn {
+    padding: 10px 20px;
+    background: var(--error-red);
+    border: none;
+    border-radius: 8px;
+    color: var(--black);
+    font-family: var(--font-orbitron);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#logout-btn:hover {
+    box-shadow: 0 0 15px var(--error-red);
+}
+
+.user-management {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+/* 4. User List Sections */
+.user-list-section {
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid var(--dark-green);
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 200px;
+}
+
+.user-list-section h2 {
+    font-family: var(--font-orbitron);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--dark-green);
+    padding-bottom: 10px;
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 5. User Cards */
+.user-card {
+    background: var(--dark-green);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-green);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+
+.user-card.status-pending {
+    border-left-color: var(--pending-amber);
+}
+
+.user-card.status-revoked {
+    border-left-color: var(--error-red);
+}
+
+.user-info p {
+    font-size: 1.1em;
+    word-break: break-all;
+}
+
+.user-info .username {
+    font-weight: 700;
+    font-size: 1.2em;
+    font-family: var(--font-orbitron);
+}
+
+.user-info .join-date, .user-info .reason {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.user-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+/* 6. Action Buttons */
+.action-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    color: var(--black);
+    font-weight: 700;
+    font-family: var(--font-rajdhani);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+.approve-btn {
+    background-color: var(--primary-green);
+}
+
+.reject-btn, .revoke-btn {
+    background-color: var(--error-red);
+}
+
+.restore-btn {
+    background-color: var(--info-blue);
+}

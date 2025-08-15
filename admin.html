@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SmartSignal Pro</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="scanner-line"></div>
+    </div>
+
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Admin Dashboard</h1>
+            <div class="admin-info">
+                <span id="admin-username"></span>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <main class="user-management">
+            <section class="user-list-section">
+                <h2>Pending Approval</h2>
+                <div id="pending-users" class="user-list">
+                    <!-- Pending users will be rendered here by JS -->
+                </div>
+            </section>
+
+            <section class="user-list-section">
+                <h2>Active Users</h2>
+                <div id="active-users" class="user-list">
+                    <!-- Active users will be rendered here by JS -->
+                </div>
+            </section>
+
+            <section class="user-list-section">
+                <h2>Revoked Users</h2>
+                <div id="revoked-users" class="user-list">
+                    <!-- Revoked users will be rendered here by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

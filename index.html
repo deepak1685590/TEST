@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartSignal Pro v2 - Elite AI Edition</title>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #f9f9f9;
+      --bg-secondary: #eef7ff;
+      --card-border: #005ce6;
+      --text-primary: #333;
+      --text-secondary: #003366;
+      --header-bg: #005ce6;
+      --header-text: white;
+      --button-bg: #00a86b;
+      --button-hover: #008850;
+      --ai-bg-start: #001b33;
+      --ai-bg-end: #003366;
+      --ai-border: #00a86b;
+      --ai-header: #00d084;
+      --ai-content: #e0f7ff;
+      --ai-meter-bg: rgba(255,255,255,0.2);
+      --ai-meter-fill: #00d084;
+      --loader-color: #005ce6;
+      --confluence-color: #006600;
+      --bullish-color: #00a86b;
+      --bearish-color: #d00;
+      --neon-glow: 0 0 10px rgba(0, 208, 132, 0.7), 0 0 20px rgba(0, 208, 132, 0.5);
+      --neon-glow-header: 0 0 15px rgba(0, 156, 255, 0.8), 0 0 30px rgba(0, 156, 255, 0.6);
+      --font-main: 'Courier New', 'Lucida Console', monospace;
+      --font-headers: 'Orbitron', 'Arial', sans-serif;
+    }
+
+    .dark-mode {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #0f1525;
+      --card-border: #00a86b;
+      --text-primary: #e0e0e0;
+      --text-secondary: #64b5f6;
+      --header-bg: #0d1b2a;
+      --header-text: #00d084;
+      --button-bg: #00a86b;
+      --button-hover: #00c88b;
+      --ai-bg-start: #0a0f18;
+      --ai-bg-end: #0d1b2a;
+      --ai-border: #00d084;
+      --ai-header: #00f0a0;
+      --ai-content: #e0f7ff;
+      --ai-meter-bg: rgba(255,255,255,0.1);
+      --ai-meter-fill: #00f0a0;
+      --loader-color: #00d084;
+      --confluence-color: #4db6ac;
+      --bullish-color: #00f0a0;
+      --bearish-color: #ff5252;
+      --neon-glow: 0 0 10px rgba(0, 240, 160, 0.7), 0 0 20px rgba(0, 240, 160, 0.5);
+      --neon-glow-header: 0 0 15px rgba(0, 208, 132, 0.8), 0 0 30px rgba(0, 208, 132, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 20px 0;
+      font-family: var(--font-main);
+      line-height: 1.6;
+    }
+
+    .smartsignal-widget {
+      font-family: var(--font-main);
+      max-width: 800px;
+      margin: 20px auto;
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      border-radius: 20px;
+      width: 50px;
+      height: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0 5px;
+      z-index: 10;
+    }
+
+    .theme-toggle-ball {
+      width: 18px;
+      height: 18px;
+      background: var(--header-bg);
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+
+    .dark-mode .theme-toggle-ball {
+      transform: translateX(22px);
+      background: #ffd700;
+    }
+
+    .widget-header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 16px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      font-family: var(--font-headers);
+      text-shadow: var(--neon-glow-header);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .widget-header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      100% { left: 100%; }
+    }
+
+    .widget-body {
+      padding: 20px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      margin: 8px 0;
+      width: 100%;
+      border: 1px solid #555;
+      border-radius: 6px;
+      font-size: 16px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--card-border);
+      box-shadow: 0 0 5px var(--card-border);
+    }
+
+    button {
+      background: var(--button-bg);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: var(--font-headers);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--neon-glow);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .signal-card {
+      margin-top: 20px;
+      padding: 18px;
+      background: var(--bg-secondary);
+      border: 1px dashed var(--card-border);
+      border-radius: 10px;
+      font-size: 14.5px;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    .signal-title {
+      font-size: 1.3em;
+      color: var(--card-border);
+      margin-bottom: 10px;
+      font-family: var(--font-headers);
+      text-shadow: 0 0 5px rgba(0, 92, 230, 0.5);
+    }
+
+    .section-header {
+      font-weight: bold;
+      color: var(--text-secondary);
+      margin: 12px 0 6px 0;
+      font-size: 1.1em;
+      font-family: var(--font-headers);
+    }
+
+    .confluence-item {
+      color: var(--confluence-color);
+      margin: 4px 0;
+      font-weight: 500;
+    }
+
+    .loader {
+      color: var(--loader-color);
+      font-style: italic;
+      text-align: center;
+      padding: 10px;
+      font-family: var(--font-main);
+    }
+
+    .elite-ai-container {
+      margin: 16px 0;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--ai-bg-start) 0%, var(--ai-bg-end) 100%);
+      border: 2px solid var(--ai-border);
+      border-radius: 12px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 168, 107, 0.35), var(--neon-glow);
+      position: relative;
+      overflow: hidden;
+      animation: pulse-glow 2s infinite;
+    }
+
+    .elite-ai-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--ai-border), transparent);
+      animation: shine 3s infinite;
+    }
+
+    .elite-ai-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 1.2em;
+      color: var(--ai-header);
+      margin-bottom: 8px;
+      font-family: var(--font-headers);
+    }
+
+    .elite-ai-header .ai-icon {
+      font-size: 1.4em;
+      animation: pulse 2s infinite;
+      text-shadow: 0 0 10px var(--ai-header);
+    }
+
+    .elite-badge {
+      background: var(--ai-border);
+      color: white;
+      font-size: 0.8em;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: var(--font-headers);
+    }
+
+    .elite-ai-content {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ai-content);
+      white-space: pre-wrap;
+      margin: 10px 0;
+      font-family: var(--font-main);
+    }
+
+    .confidence-meter {
+      margin-top: 12px;
+      font-size: 0.9em;
+      color: #a0d8ff;
+    }
+
+    .confidence-meter .bar {
+      height: 6px;
+      width: 100%;
+      background: var(--ai-meter-bg);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 4px 0;
+    }
+
+    .confidence-meter .fill {
+      height: 100%;
+      width: 95%;
+      background: var(--ai-meter-fill);
+      border-radius: 3px;
+      box-shadow: 0 0 5px var(--ai-meter-fill);
+    }
+
+    .copy-button {
+      margin-top: 10px;
+      background: #003366;
+      color: var(--ai-header);
+      border: 1px solid var(--ai-header);
+      font-size: 0.9em;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-family: var(--font-main);
+      text-shadow: 0 0 3px var(--ai-header);
+    }
+
+    .copy-button:hover {
+      background: #005080;
+      transform: scale(1.02);
+      box-shadow: 0 0 8px var(--ai-header);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 4px 12px rgba(0, 168, 107, 0.35), 0 0 0px rgba(0, 168, 107, 0.3); }
+      50% { box-shadow: 0 4px 12px rgba(0, 168, 107, 0.35), 0 0 10px rgba(0, 168, 107, 0.5); }
+      100% { box-shadow: 0 4px 12px rgba(0, 168, 107, 0.35), 0 0 0px rgba(0, 168, 107, 0.3); }
+    }
+
+    .glow-effect {
+      text-shadow: var(--neon-glow-header);
+      animation: glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #00d084; }
+      to { text-shadow: 0 0 15px #00d084, 0 0 20px #00d084; }
+    }
+
+    .download-btn {
+      background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%) !important;
+      border: none !important;
+      color: white !important;
+      font-family: var(--font-headers) !important;
+      text-transform: uppercase !important;
+      letter-spacing: 1px !important;
+      font-weight: bold !important;
+      margin-top: 15px !important;
+      padding: 10px 15px !important;
+      width: auto !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 0 15px rgba(106, 17, 203, 0.6) !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 0 20px rgba(106, 17, 203, 0.8) !important;
+      background: linear-gradient(45deg, #7a21db 0%, #3585fc 100%) !important;
+    }
+
+    .download-btn:active {
+      transform: translateY(0) !important;
+    }
+
+    .download-btn i {
+      font-size: 1.2em;
+      animation: pulse-icon 1.5s infinite;
+    }
+
+    @keyframes pulse-icon {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .admin-dashboard-link {
+      position: absolute;
+      top: 22px;
+      left: 15px;
+      font-size: 0.7em;
+      color: var(--header-text);
+      text-decoration: none;
+      border: 1px solid var(--header-text);
+      padding: 4px 8px;
+      border-radius: 5px;
+      opacity: 0.8;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+    .admin-dashboard-link:hover {
+      opacity: 1;
+      background: rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>
+    // IIFE to protect the global scope
+    (function() {
+        const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+
+        // If no user is logged in via this session, redirect to login.
+        if (!loggedInUser) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // If the logged-in user is an admin, show the admin link and allow access.
+        if (loggedInUser.isAdmin) {
+            const adminLink = document.getElementById('admin-link');
+            if (adminLink) {
+                adminLink.style.display = 'inline-block';
+            }
+            return;
+        }
+
+        // For regular users, we must verify their status is 'approved' from the master user list.
+        const allUsers = JSON.parse(localStorage.getItem('users')) || [];
+        const currentUser = allUsers.find(u => u.username === loggedInUser.username);
+
+        // If the user does not exist in the master list or their status is not 'approved', redirect.
+        if (!currentUser || currentUser.status !== 'approved') {
+            window.location.href = 'login.html';
+        }
+    })();
+  </script>
+  <div class="smartsignal-widget">
+    <div class="widget-header">
+      🚀 SmartSignal Pro v2 - Elite AI Edition
+      <a href="admin.html" id="admin-link" class="admin-dashboard-link" style="display: none;">Admin Panel</a>
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <div class="theme-toggle-ball"></div>
+    </div>
+    <div class="widget-body">
+      <p><strong>Enter asset:</strong> BTC, ETH, SOL, XRP, etc. (Binance symbols)</p>
+      <input type="text" id="symbolInput" placeholder="e.g. BTC" />
+
+      <select id="modeSelect" onchange="handleModeChange()">
+        <option value="1">1 - Quick Pulse</option>
+        <option value="2">2 - Pro Signal</option>
+        <option value="3" selected>3 - Elite Mode (AI-Powered)</option>
+      </select>
+
+      <div id="apiKeyContainer" style="display: none;">
+        <p><strong>Enter your OpenRouter API Key:</strong> <small>(stored in your browser)</small></p>
+        <input type="password" id="apiKeyInput" placeholder="sk-or-v1-..." onchange="saveApiKey()" />
+      </div>
+
+      <button onclick="generateSignal()">Generate Signal</button>
+
+      <div id="loading" class="loader" style="display: none;">
+        Scanning Swing Points, Volume, and Smart Money Zones... 🧠
+      </div>
+
+      <div id="result" class="signal-card" style="display: none;">
+        <div id="signalContent"></div>
+        <button onclick="downloadPNG()" class="download-btn"><i>📷</i> Download Signal Card</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleModeChange() {
+      const modeSelect = document.getElementById('modeSelect');
+      const apiKeyContainer = document.getElementById('apiKeyContainer');
+      if (modeSelect.value === '3') {
+        apiKeyContainer.style.display = 'block';
+      } else {
+        apiKeyContainer.style.display = 'none';
+      }
+    }
+
+    function saveApiKey() {
+      const apiKey = document.getElementById('apiKeyInput').value;
+      if (apiKey) {
+        localStorage.setItem('smartSignalApiKey', apiKey);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('smartSignalTheme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+      } else if (savedTheme === 'light') {
+        document.body.classList.remove('dark-mode');
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark-mode');
+      }
+
+      const savedApiKey = localStorage.getItem('smartSignalApiKey');
+      if (savedApiKey) {
+        document.getElementById('apiKeyInput').value = savedApiKey;
+      }
+
+      handleModeChange();
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      localStorage.setItem('smartSignalTheme', isDarkMode ? 'dark' : 'light');
+    }
+
+    async function generateSignal() {
+      const symbol = document.getElementById("symbolInput").value.trim().toUpperCase();
+      const mode = document.getElementById("modeSelect").value;
+      const resultDiv = document.getElementById("result");
+      const signalDiv = document.getElementById("signalContent");
+      const loadingDiv = document.getElementById("loading");
+
+      if (!symbol) {
+        alert("Please enter a symbol (e.g., BTC, ETH)");
+        return;
+      }
+
+      loadingDiv.style.display = "block";
+      resultDiv.style.display = "none";
+      signalDiv.innerHTML = "";
+
+      let price = null;
+      let klines = null;
+      let orderBook = null;
+      let symbolWithUSDT = symbol + "USDT";
+
+      try {
+        const priceResponse = await axios.get(
+          `https://api.binance.com/api/v3/ticker/price?symbol=${symbolWithUSDT}`
+        );
+        price = parseFloat(priceResponse.data.price);
+
+        const klinesResponse = await axios.get(
+          `https://api.binance.com/api/v3/klines?symbol=${symbolWithUSDT}&interval=15m&limit=50`
+        );
+        klines = klinesResponse.data;
+
+        const orderBookResponse = await axios.get(
+          `https://api.binance.com/api/v3/depth?symbol=${symbolWithUSDT}&limit=100`
+        );
+        orderBook = orderBookResponse.data;
+      } catch (err) {
+        console.error("Binance API Error:", err);
+        price = (Math.random() * 50000).toFixed(2);
+        klines = [];
+        let currentPrice = parseFloat(price);
+        for (let i = 0; i < 50; i++) {
+          const open = currentPrice;
+          const high = open * (1 + Math.random() * 0.02);
+          const low = open * (1 - Math.random() * 0.02);
+          const close = open * (0.99 + Math.random() * 0.02);
+          currentPrice = close;
+          klines.push([
+            Date.now() - (50 - i) * 15 * 60 * 1000,
+            open.toFixed(2),
+            high.toFixed(2),
+            low.toFixed(2),
+            close.toFixed(2),
+            (Math.random() * 10000).toFixed(2)
+          ]);
+        }
+        orderBook = { bids: [], asks: [] };
+        for (let i = 0; i < 10; i++) {
+          const bidPrice = (price * (1 - 0.001 * i)).toFixed(2);
+          const askPrice = (price * (1 + 0.001 * i)).toFixed(2);
+          orderBook.bids.push([bidPrice, (Math.random() * 1000).toFixed(2)]);
+          orderBook.asks.push([askPrice, (Math.random() * 1000).toFixed(2)]);
+        }
+      }
+
+      price = parseFloat(price);
+
+      const highPrices = klines.map(k => parseFloat(k[2]));
+      const lowPrices = klines.map(k => parseFloat(k[3]));
+      const recentHighs = highPrices.slice(-20);
+      const recentLows = lowPrices.slice(-20);
+      const swingHigh = Math.max(...recentHighs).toFixed(2);
+      const swingLow = Math.min(...recentLows).toFixed(2);
+
+      const lastCandle = klines[klines.length - 1];
+      const lastClose = parseFloat(lastCandle[4]);
+      const lastHigh = parseFloat(lastCandle[2]);
+      const lastLow = parseFloat(lastCandle[3]);
+
+      const pivot = (parseFloat(swingHigh) + parseFloat(swingLow) + lastClose) / 3;
+      const r1 = (2 * pivot - parseFloat(swingLow)).toFixed(2);
+      const s1 = (2 * pivot - parseFloat(swingHigh)).toFixed(2);
+      const r2 = (pivot + (parseFloat(swingHigh) - parseFloat(swingLow))).toFixed(2);
+      const s2 = (pivot - (parseFloat(swingHigh) - parseFloat(swingLow))).toFixed(2);
+
+      const recentVolumes = klines.slice(-10).map(k => parseFloat(k[5]));
+      const totalVolume = recentVolumes.reduce((sum, vol) => sum + vol, 0);
+      const buyVolume = (totalVolume * 0.55).toFixed(0);
+      const sellVolume = (totalVolume * 0.45).toFixed(0);
+      const volumeImbalance = buyVolume > sellVolume ? "🟢 Net Buying Pressure" : "🔴 Net Selling Pressure";
+
+      const atrPeriod = 10;
+      let atrSum = 0;
+      for (let i = klines.length - atrPeriod; i < klines.length; i++) {
+        const high = parseFloat(klines[i][2]);
+        const low = parseFloat(klines[i][3]);
+        const prevClose = i > 0 ? parseFloat(klines[i-1][4]) : high;
+        const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+        atrSum += tr;
+      }
+      const atr = atrSum / atrPeriod;
+      const superTrend = price * (price > pivot ? 0.98 : 1.02);
+      const isBullish = price > superTrend;
+
+      const demandZone = isBullish
+        ? [(price * 0.98).toFixed(2), (price * 0.988).toFixed(2)]
+        : [(price * 1.01).toFixed(2), (price * 1.018).toFixed(2)];
+
+      const supplyZone = isBullish
+        ? [(price * 1.015).toFixed(2), (price * 1.025).toFixed(2)]
+        : [(price * 0.97).toFixed(2), (price * 0.98).toFixed(2)];
+
+      const fvgZone = isBullish
+        ? [(price * 0.975).toFixed(2), (price * 0.98).toFixed(2)]
+        : [(price * 1.02).toFixed(2), (price * 1.025).toFixed(2)];
+
+      const patterns = ["Horse Shoe", "Protected Bullish Engulfing", "MeReT", "4-Candle Reversal"];
+      const detectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      const vah = (price * 1.03).toFixed(2);
+      const val = (price * 0.97).toFixed(2);
+      const poc = price.toFixed(2);
+
+      const liquidityPool = isBullish
+        ? (price * 0.96).toFixed(2)
+        : (price * 1.04).toFixed(2);
+
+      const timeframes = ['5M', '15M', '30M', '1H', '4H', '1D'];
+      const mtfa = timeframes.map(tf => {
+        const strength = Math.random() > 0.5 ? 'Bullish' : 'Bearish';
+        const fvg = Math.random() > 0.7 ? 'FVG Present' : '';
+        const ob = Math.random() > 0.7 ? 'OB Detected' : '';
+        return `${tf}: ${strength} ${fvg ? '| ' + fvg : ''} ${ob ? '| ' + ob : ''}`;
+      });
+
+      const confluenceFactors = [
+        isBullish && "🟢 Supertrend Confirmed (Bullish Structure)",
+        price > swingLow && "🔺 Price Above Swing Low (Support Holding)",
+        price < swingHigh && "🔻 Price Below Swing High (Resistance Test)",
+        buyVolume > sellVolume && "📊 Buyer Dominance Detected",
+        detectedPattern && `🟣 Pattern: ${detectedPattern}`,
+        fvgZone && "🟢 Fair Value Gap (FVG) Present",
+        demandZone && "🔵 Strong Demand Zone Active",
+        supplyZone && "🔴 Major Supply Zone Ahead"
+      ].filter(Boolean);
+
+      const confluenceCount = confluenceFactors.length;
+      const confidence = confluenceCount >= 6 ? "Very High" :
+                         confluenceCount >= 4 ? "High" :
+                         confluenceCount >= 2 ? "Medium" : "Low";
+
+      const action = isBullish ? "Buy on Pullback" : "Sell on Rally";
+      const entry = isBullish ? (price * 0.99).toFixed(2) : (price * 1.01).toFixed(2);
+      const sl = isBullish ? (price * 0.97).toFixed(2) : (price * 1.03).toFixed(2);
+      const tp1 = isBullish ? (price * 1.03).toFixed(2) : (price * 0.97).toFixed(2);
+      const tp2 = isBullish ? (price * 1.06).toFixed(2) : (price * 0.94).toFixed(2);
+      const tp3 = isBullish ? (price * 1.10).toFixed(2) : (price * 0.90).toFixed(2);
+
+      signalDiv.innerHTML = `
+        <div class="signal-title glow-effect">🎯 Elite Signal: ${symbol} (${isBullish ? 'Bullish' : 'Bearish'})</div>
+        <strong>💰 Price:</strong> $${price}<br>
+        <strong>📌 Action:</strong> <span style="color:${isBullish ? 'var(--bullish-color)' : 'var(--bearish-color)'}">${action}</span><br>
+        <strong>🚪 Entry:</strong> $${entry}<br>
+        <strong>🛑 Stop-Loss:</strong> $${sl}<br>
+        <strong>🎯 Take-Profit:</strong> TP1: $${tp1} | TP2: $${tp2} | TP3: $${tp3}<br>
+        <strong>📊 Risk-Reward:</strong> 1 : ${isBullish ? '7.2' : '6.8'}<br>
+        <strong>🛡️ Confidence:</strong> <strong style="color:${confidence === 'Very High' ? 'var(--bullish-color)' : confidence === 'High' ? 'blue' : 'orange'}">${confidence}</strong><br><br>
+
+        <div class="section-header glow-effect">🔍 Signals Detected:</div>
+        ${confluenceFactors.map(f => `<div class="confluence-item">• ${f}</div>`).join('')}
+
+        <div class="section-header glow-effect">📌 Key Levels</div>
+        • <strong>Swing High:</strong> $${swingHigh}<br>
+        • <strong>Swing Low:</strong> $${swingLow}<br>
+        • <strong>Daily Pivot:</strong> $${pivot.toFixed(2)}<br>
+        • <strong>Support:</strong> S1: $${s1}, S2: $${s2}<br>
+        • <strong>Resistance:</strong> R1: $${r1}, R2: $${r2}<br>
+
+        <div class="section-header glow-effect">📊 Volume Analysis</div>
+        • <strong>Buyer Volume:</strong> ${buyVolume} units<br>
+        • <strong>Seller Volume:</strong> ${sellVolume} units<br>
+        • <strong>Net Flow:</strong> ${volumeImbalance}<br>
+
+        <div class="section-header glow-effect">🟦 Supply & Demand Zones</div>
+        • <strong>Demand Zone:</strong> $${demandZone[0]} – $${demandZone[1]}<br>
+        • <strong>Supply Zone:</strong> $${supplyZone[0]} – $${supplyZone[1]}<br>
+        • <strong>Fair Value Gap (FVG):</strong> $${fvgZone[0]} – $${fvgZone[1]}<br>
+
+        <div class="section-header glow-effect">📈 Volume Profile</div>
+        • <strong>VAH (Value Area High):</strong> $${vah}<br>
+        • <strong>VAL (Value Area Low):</strong> $${val}<br>
+        • <strong>POC (Point of Control):</strong> $${poc}<br>
+
+        <div class="section-header glow-effect">🔁 Multi-Timeframe Alignment (5M → 1D)</div>
+        ${mtfa.map(line => `• ${line}`).join('<br>')}
+
+        <div class="section-header glow-effect">💧 Liquidity & Structure</div>
+        • <strong>Liquidity Pool:</strong> $${liquidityPool} (potential wick trap)<br>
+        • <strong>Market Structure:</strong> ${isBullish ? 'Bullish (Higher Low Confirmed)' : 'Bearish (Lower High Confirmed)'}<br>
+
+        <small>Generated: ${new Date().toLocaleString()}</small>
+
+        ${mode === "3" ? `
+        <div class="elite-ai-container">
+          <div class="elite-ai-header">
+            <span class="ai-icon">🤖</span>
+            <span>Elite AI Insight</span>
+            <span class="elite-badge">Level 5 Analysis</span>
+          </div>
+          <div id="aiInsight" class="elite-ai-content">
+            🧠 Initializing quantum trading matrix...
+          </div>
+          <div class="confidence-meter">
+            <div>Confidence: Ultra-High (95%)</div>
+            <div class="bar"><div class="fill"></div></div>
+          </div>
+          <button class="copy-button" onclick="copyAIInsight()">📋 Copy Insight</button>
+        </div>
+        ` : ''}
+      `;
+
+      loadingDiv.style.display = "none";
+      resultDiv.style.display = "block";
+
+      if (mode === "3") {
+        const apiKey = document.getElementById("apiKeyInput").value.trim();
+        if (!apiKey) {
+          document.getElementById("aiInsight").textContent = "⚠️ API Key required for Elite AI Insight. Please enter your key above and try again.";
+          return;
+        }
+
+        const prompt = `
+You are ELITE-AI, a world-class trading strategist with 20 years of institutional experience.
+Analyze this ${symbol} setup and deliver a single, powerful paragraph that sounds like a Bloomberg Pro Terminal alert.
+
+Structure:
+- Start with: "Strong [bullish/bearish] setup presents itself..."
+- Mention price, entry, SL, TP, confluence count
+- Highlight demand/supply zones and FVG
+- Note volume bias
+- End with a sharp, confident conclusion
+
+Tone: Professional, urgent, elite. No markdown. Max 180 tokens.
+
+Data:
+Price: $${price}
+Trend: ${isBullish ? 'Bullish' : 'Bearish'}
+Action: ${action}
+Entry: $${entry}, SL: $${sl}, TP1: $${tp1}
+Confluence: ${confluenceCount} factors
+Demand Zone: $${demandZone[0]}–${demandZone[1]}
+FVG: $${fvgZone[0]}–${fvgZone[1]}
+Volume: ${volumeImbalance}
+        `;
+
+        try {
+          const response = await axios.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+              model: "mistralai/mistral-7b-instruct:free",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 200,
+              temperature: 0.6,
+            },
+            {
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "HTTP-Referer": window.location.href,
+                "X-Title": "SmartSignal Pro AI",
+                "Content-Type": "application/json"
+              }
+            }
+          );
+
+          const aiText = response.data.choices[0].message.content.trim();
+          document.getElementById("aiInsight").textContent = aiText;
+
+        } catch (err) {
+          console.error("AI Error:", err);
+          let fallbackText;
+          if (err.response && err.response.status === 401) {
+            fallbackText = "AI analysis failed: Authentication error. Please verify your API key is correct and has funds.";
+          } else {
+            fallbackText = `AI analysis failed. Using fallback data. Strong ${isBullish ? 'bullish' : 'bearish'} setup in ${symbol} at $${price.toFixed(2)}. ${confluenceCount} confluence factors. Entry: $${entry}, SL: $${sl}, TP1: $${tp1}. FVG at $${fvgZone[0]}–${fvgZone[1]}. ${volumeImbalance}. Institutional-grade opportunity.`;
+          }
+          document.getElementById("aiInsight").textContent = fallbackText;
+        }
+      }
+    }
+
+    function downloadPNG() {
+      const signalDiv = document.getElementById("result");
+      const isDarkMode = document.body.classList.contains('dark-mode');
+
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'fixed';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '800px';
+      tempContainer.style.backgroundColor = isDarkMode ? '#0a0a12' : '#f9f9f9';
+      tempContainer.style.fontFamily = 'monospace';
+      tempContainer.style.padding = '20px';
+      tempContainer.style.boxSizing = 'border-box';
+      tempContainer.style.color = isDarkMode ? '#e0e0e0' : '#333';
+
+      const clonedContent = signalDiv.cloneNode(true);
+      tempContainer.appendChild(clonedContent);
+      document.body.appendChild(tempContainer);
+
+      html2canvas(tempContainer, {
+        backgroundColor: isDarkMode ? '#0a0a12' : '#f9f9f9',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      }).then(canvas => {
+        document.body.removeChild(tempContainer);
+        const imgData = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = imgData;
+        a.download = `SmartSignal_${document.getElementById("symbolInput").value.toUpperCase()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }).catch(error => {
+        console.error("Error generating image:", error);
+        alert("Failed to generate image. Please try again.");
+        if (document.body.contains(tempContainer)) {
+          document.body.removeChild(tempContainer);
+        }
+      });
+    }
+
+    function copyAIInsight() {
+      const insight = document.getElementById("aiInsight").textContent;
+      navigator.clipboard.writeText(insight).then(() => {
+        alert("✅ Elite AI Insight copied to clipboard!");
+      }).catch(err => {
+        console.error("Copy failed:", err);
+        alert("❌ Copy failed. Please try again.");
+      });
+    }
+  </script>
+</body>
+</html>

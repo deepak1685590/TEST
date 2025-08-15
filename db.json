@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "username": "DG143",
+      "password": "DG143",
+      "isAdmin": true,
+      "status": "approved",
+      "reason": "",
+      "joined": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
