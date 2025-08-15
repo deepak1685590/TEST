@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SmartSignal Pro v2 - Elite AI Edition</title>
 
+  <!-- Auth Guard -->
+  <script src="auth.js"></script>
+
   <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -721,7 +724,7 @@ Volume: ${volumeImbalance}
 
         } catch (err) {
           console.error("AI Error:", err);
-          const fallback = `Strong ${isBullish ? 'bullish' : 'bearish'} setup in ${symbol} at $${price.toFixed(2)}. ${confluenceCount} confluence factors. Entry: $${entry}, SL: $${sl}, TP1: $${tp1}. FVG at $${fvgZone[0]}–${fvgZone[1]}. ${volumeImbalance}. Institutional-grade opportunity.`;
+          const fallback = `Strong ${isBullish ? 'bullish' : 'bearish'} setup in ${symbol} at $${price.toFixed(2)}. ${confluenceCount} confluence factors. Entry: $${entry}, SL: $${sl}, TP1: $${tp1}. FVG at $${fvgZone[0]}–${fvgZone[1]}. ${volume.Imbalance}. Institutional-grade opportunity.`;
           document.getElementById("aiInsight").textContent = fallback;
         }
       }
