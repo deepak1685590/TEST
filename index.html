@@ -397,63 +397,11 @@
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
-
-    .admin-dashboard-link {
-      position: absolute;
-      top: 22px;
-      left: 15px;
-      font-size: 0.7em;
-      color: var(--header-text);
-      text-decoration: none;
-      border: 1px solid var(--header-text);
-      padding: 4px 8px;
-      border-radius: 5px;
-      opacity: 0.8;
-      transition: all 0.3s ease;
-      z-index: 10;
-    }
-    .admin-dashboard-link:hover {
-      opacity: 1;
-      background: rgba(255,255,255,0.1);
-    }
   </style>
 </head>
 <body class="dark-mode">
-  <script>
-    // IIFE to protect the global scope
-    (function() {
-        const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
-
-        // If no user is logged in via this session, redirect to login.
-        if (!loggedInUser) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        // If the logged-in user is an admin, show the admin link and allow access.
-        if (loggedInUser.isAdmin) {
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink) {
-                adminLink.style.display = 'inline-block';
-            }
-            return;
-        }
-
-        // For regular users, we must verify their status is 'approved' from the master user list.
-        const allUsers = JSON.parse(localStorage.getItem('users')) || [];
-        const currentUser = allUsers.find(u => u.username === loggedInUser.username);
-
-        // If the user does not exist in the master list or their status is not 'approved', redirect.
-        if (!currentUser || currentUser.status !== 'approved') {
-            window.location.href = 'login.html';
-        }
-    })();
-  </script>
   <div class="smartsignal-widget">
-    <div class="widget-header">
-      🚀 SmartSignal Pro v2 - Elite AI Edition
-      <a href="admin.html" id="admin-link" class="admin-dashboard-link" style="display: none;">Admin Panel</a>
-    </div>
+    <div class="widget-header">🚀 SmartSignal Pro v2 - Elite AI Edition</div>
     <div class="theme-toggle" onclick="toggleTheme()">
       <div class="theme-toggle-ball"></div>
     </div>
@@ -461,16 +409,11 @@
       <p><strong>Enter asset:</strong> BTC, ETH, SOL, XRP, etc. (Binance symbols)</p>
       <input type="text" id="symbolInput" placeholder="e.g. BTC" />
 
-      <select id="modeSelect" onchange="handleModeChange()">
+      <select id="modeSelect">
         <option value="1">1 - Quick Pulse</option>
         <option value="2">2 - Pro Signal</option>
         <option value="3" selected>3 - Elite Mode (AI-Powered)</option>
       </select>
-
-      <div id="apiKeyContainer" style="display: none;">
-        <p><strong>Enter your OpenRouter API Key:</strong> <small>(stored in your browser)</small></p>
-        <input type="password" id="apiKeyInput" placeholder="sk-or-v1-..." onchange="saveApiKey()" />
-      </div>
 
       <button onclick="generateSignal()">Generate Signal</button>
 
@@ -486,22 +429,7 @@
   </div>
 
   <script>
-    function handleModeChange() {
-      const modeSelect = document.getElementById('modeSelect');
-      const apiKeyContainer = document.getElementById('apiKeyContainer');
-      if (modeSelect.value === '3') {
-        apiKeyContainer.style.display = 'block';
-      } else {
-        apiKeyContainer.style.display = 'none';
-      }
-    }
-
-    function saveApiKey() {
-      const apiKey = document.getElementById('apiKeyInput').value;
-      if (apiKey) {
-        localStorage.setItem('smartSignalApiKey', apiKey);
-      }
-    }
+    const OPENROUTER_API_KEY = "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";
 
     document.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('smartSignalTheme');
@@ -512,13 +440,6 @@
       } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.body.classList.add('dark-mode');
       }
-
-      const savedApiKey = localStorage.getItem('smartSignalApiKey');
-      if (savedApiKey) {
-        document.getElementById('apiKeyInput').value = savedApiKey;
-      }
-
-      handleModeChange();
     });
 
     function toggleTheme() {
@@ -752,12 +673,6 @@
       resultDiv.style.display = "block";
 
       if (mode === "3") {
-        const apiKey = document.getElementById("apiKeyInput").value.trim();
-        if (!apiKey) {
-          document.getElementById("aiInsight").textContent = "⚠️ API Key required for Elite AI Insight. Please enter your key above and try again.";
-          return;
-        }
-
         const prompt = `
 You are ELITE-AI, a world-class trading strategist with 20 years of institutional experience.
 Analyze this ${symbol} setup and deliver a single, powerful paragraph that sounds like a Bloomberg Pro Terminal alert.
@@ -793,7 +708,7 @@ Volume: ${volumeImbalance}
             },
             {
               headers: {
-                "Authorization": `Bearer ${apiKey}`,
+                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
                 "HTTP-Referer": window.location.href,
                 "X-Title": "SmartSignal Pro AI",
                 "Content-Type": "application/json"
@@ -806,13 +721,8 @@ Volume: ${volumeImbalance}
 
         } catch (err) {
           console.error("AI Error:", err);
-          let fallbackText;
-          if (err.response && err.response.status === 401) {
-            fallbackText = "AI analysis failed: Authentication error. Please verify your API key is correct and has funds.";
-          } else {
-            fallbackText = `AI analysis failed. Using fallback data. Strong ${isBullish ? 'bullish' : 'bearish'} setup in ${symbol} at $${price.toFixed(2)}. ${confluenceCount} confluence factors. Entry: $${entry}, SL: $${sl}, TP1: $${tp1}. FVG at $${fvgZone[0]}–${fvgZone[1]}. ${volumeImbalance}. Institutional-grade opportunity.`;
-          }
-          document.getElementById("aiInsight").textContent = fallbackText;
+          const fallback = `Strong ${isBullish ? 'bullish' : 'bearish'} setup in ${symbol} at $${price.toFixed(2)}. ${confluenceCount} confluence factors. Entry: $${entry}, SL: $${sl}, TP1: $${tp1}. FVG at $${fvgZone[0]}–${fvgZone[1]}. ${volumeImbalance}. Institutional-grade opportunity.`;
+          document.getElementById("aiInsight").textContent = fallback;
         }
       }
     }
