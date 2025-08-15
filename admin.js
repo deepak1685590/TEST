@@ -1,10 +1,15 @@
 // admin.js - Refactored to use the backend API
 
-// --- 1. Initialization ---
+// --- 1. Initialization & Auth Guard ---
 document.addEventListener('DOMContentLoaded', () => {
-    // The server now protects this page, so we can assume the user is an admin.
-    // We still need the user info for the display, which we can get from sessionStorage.
     const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+
+    // Auth guard: Ensure user is logged in and is an admin
+    if (!loggedInUser || !loggedInUser.isAdmin) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     initAdminDashboard(loggedInUser);
 });
 
@@ -144,13 +149,7 @@ function handleUserAction(event) {
     }
 }
 
-async function logout() {
-    try {
-        await fetch('/api/logout', { method: 'POST' });
-    } catch (error) {
-        console.error('Logout failed', error);
-    } finally {
-        sessionStorage.removeItem('loggedInUser');
-        window.location.href = '/login.html';
-    }
+function logout() {
+    sessionStorage.removeItem('loggedInUser');
+    window.location.href = 'login.html';
 }
