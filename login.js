@@ -12,6 +12,8 @@ function init() {
     document.getElementById('user-tab').addEventListener('click', () => switchTab('user'));
     document.getElementById('admin-tab').addEventListener('click', () => switchTab('admin'));
 
+    startMatrixAnimation();
+
     // Initialize users in localStorage if not present
     if (!localStorage.getItem('users')) {
         const adminUser = [{
@@ -132,4 +134,61 @@ function handleLogin(event) {
         localStorage.setItem('users', JSON.stringify(users));
         displayStatus('success', '✅ Account created!', 'Awaiting admin approval...');
     }
+}
+
+// --- Matrix Animation ---
+function startMatrixAnimation() {
+    const canvas = document.getElementById('matrix-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas to full screen
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // The symbols to be used in the animation
+    const symbols = ['$', '€', '£', '¥', '₿', 'R', '₽', '₹', '0', '1'];
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+
+    // Array to store the y-position of each column's raindrop
+    const drops = [];
+    for (let x = 0; x < columns; x++) {
+        drops[x] = 1;
+    }
+
+    function draw() {
+        // Black background with transparency to create the fading effect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Set text color and font
+        ctx.fillStyle = '#00FF41'; // Neon green
+        ctx.font = fontSize + 'px arial';
+
+        // Loop through columns
+        for (let i = 0; i < drops.length; i++) {
+            // Get a random symbol
+            const text = symbols[Math.floor(Math.random() * symbols.length)];
+            // Draw the symbol
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            // Reset the drop to the top randomly to make the rain uneven
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+
+            // Move the drop down
+            drops[i]++;
+        }
+    }
+
+    setInterval(draw, 33);
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
 }
