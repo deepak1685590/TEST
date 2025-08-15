@@ -11,6 +11,7 @@ const DB_PATH = path.join(__dirname, 'db.json');
 // --- Middleware ---
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(__dirname)); // Serve static files from the root directory
 
 // --- Helper Functions for DB ---
 const readUsers = () => {
