@@ -1,4 +1,4 @@
-// login.js
+// login.js - Reverted to localStorage version
 
 document.addEventListener('DOMContentLoaded', () => {
     init();
@@ -11,7 +11,19 @@ function init() {
     document.getElementById('login-form').addEventListener('submit', handleLogin);
     document.getElementById('user-tab').addEventListener('click', () => switchTab('user'));
     document.getElementById('admin-tab').addEventListener('click', () => switchTab('admin'));
-    // User data is now managed by the backend, so no localStorage initialization is needed here.
+
+    // Initialize users in localStorage if not present
+    if (!localStorage.getItem('users')) {
+        const adminUser = [{
+            username: "DG143",
+            password: "DG143",
+            isAdmin: true,
+            status: "approved",
+            reason: "",
+            joined: new Date().toISOString()
+        }];
+        localStorage.setItem('users', JSON.stringify(adminUser));
+    }
 }
 
 function switchTab(mode) {
@@ -35,7 +47,7 @@ function switchTab(mode) {
         formSubtitle.textContent = 'Enter your credentials to continue';
         formFooter.style.display = 'block';
     }
-    displayStatus(); // Clear status messages on tab switch
+    displayStatus();
 }
 
 function displayStatus(type, message, subMessage = '') {
@@ -58,11 +70,10 @@ function displayStatus(type, message, subMessage = '') {
         subMessageP.innerHTML = subMessage;
         statusBox.appendChild(subMessageP);
     }
-
     statusContainer.appendChild(statusBox);
 }
 
-async function handleLogin(event) {
+function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -72,35 +83,30 @@ async function handleLogin(event) {
         return;
     }
 
-    try {
-        const loginResponse = await fetch('http://localhost:3000/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
+    if (currentMode === 'admin') {
+        // Admin login is a special case
+        if (username === 'DG143' && password === 'DG143') {
+            displayStatus('success', 'Admin access granted. Redirecting...');
+            sessionStorage.setItem('loggedInUser', JSON.stringify({ username, isAdmin: true }));
+            setTimeout(() => { window.location.href = 'admin.html'; }, 1500);
+        } else {
+            displayStatus('revoked', 'Invalid admin credentials.');
+        }
+        return;
+    }
 
-        const data = await loginResponse.json();
+    // User Login / Registration
+    const users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
 
-        if (loginResponse.ok) {
-            const { user } = data;
-
-            // Verify user is logging in via the correct tab
-            if (currentMode === 'admin' && !user.isAdmin) {
-                displayStatus('revoked', 'This is not an admin account.');
-                return;
-            }
-             if (currentMode === 'user' && user.isAdmin) {
-                displayStatus('revoked', 'Admin accounts must use the Admin Access tab.');
-                return;
-            }
-
-            // Handle login based on user status
+    if (user) {
+        // Existing user
+        if (user.password === password) {
             switch (user.status) {
                 case 'approved':
                     displayStatus('success', 'Login successful. Redirecting...');
-                    sessionStorage.setItem('loggedInUser', JSON.stringify({ username: user.username, isAdmin: user.isAdmin }));
-                    const redirectUrl = user.isAdmin ? 'admin.html' : 'index.html';
-                    setTimeout(() => { window.location.href = redirectUrl; }, 1500);
+                    sessionStorage.setItem('loggedInUser', JSON.stringify({ username, isAdmin: false }));
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
                     break;
                 case 'pending':
                     displayStatus('pending', '⚠️ Your account is pending admin approval.', 'Please wait for an admin to activate your account.');
@@ -110,40 +116,20 @@ async function handleLogin(event) {
                     break;
             }
         } else {
-            // If login fails, it could be a new user or a wrong password.
-            if (currentMode === 'user' && loginResponse.status === 401) {
-                // Attempt to register the user.
-                await handleRegistration(username, password);
-            } else {
-                displayStatus('revoked', data.message || 'Login failed.');
-            }
+            displayStatus('revoked', 'Invalid username or password.');
         }
-    } catch (error) {
-        console.error('Login/Registration Error:', error);
-        displayStatus('revoked', 'Could not connect to the server. Please try again later.');
-    }
-}
-
-async function handleRegistration(username, password) {
-    try {
-        const registerResponse = await fetch('http://localhost:3000/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await registerResponse.json();
-
-        if (registerResponse.ok) {
-            displayStatus('success', '✅ Account created!', 'Awaiting admin approval...');
-        } else if (registerResponse.status === 409) {
-            // 409 Conflict means username exists, so the initial login failure must have been due to a wrong password.
-            displayStatus('revoked', 'Invalid password for the given username.');
-        } else {
-            displayStatus('revoked', data.message || 'Registration failed.');
-        }
-    } catch (error) {
-        console.error('Registration Error:', error);
-        displayStatus('revoked', 'Could not connect to the server for registration.');
+    } else {
+        // New user registration
+        const newUser = {
+            username,
+            password,
+            isAdmin: false,
+            status: 'pending',
+            reason: '',
+            joined: new Date().toISOString()
+        };
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+        displayStatus('success', '✅ Account created!', 'Awaiting admin approval...');
     }
 }
