@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
+  <link rel="stylesheet" href="chatbot.css">
   <style>
     :root {
       --bg-primary: #f9f9f9;
@@ -834,5 +835,30 @@ Volume: ${volumeImbalance}
       });
     }
   </script>
+
+  <!-- Chatbot UI -->
+  <div class="chatbot-fab" id="chatbot-fab">
+      <span>🤖</span>
+  </div>
+
+  <div class="chatbot-window" id="chatbot-window">
+      <div class="chatbot-header">
+          <h3>SmartSignal AI Assistant</h3>
+          <button class="chatbot-close-btn" id="chatbot-close-btn">&times;</button>
+      </div>
+      <div class="chatbot-messages" id="chatbot-messages">
+          <div class="message bot-message">
+              <p>Hello! How can I help you with the market today?</p>
+          </div>
+      </div>
+      <div class="chatbot-input-form">
+          <form id="chatbot-form">
+              <input type="text" id="chatbot-input" placeholder="Ask about a signal..." autocomplete="off">
+              <button type="submit">Send</button>
+          </form>
+      </div>
+  </div>
+
+  <script src="chatbot.js"></script>
 </body>
 </html>
